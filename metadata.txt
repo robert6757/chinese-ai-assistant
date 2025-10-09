@@ -1,0 +1,47 @@
+# This file contains metadata for your plugin.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Chinese AI Assistant
+qgisMinimumVersion=3.38
+description=This plugin provides a Chinese AI assistant, combining a LLM with the Phoenix-GIS knowledge database.
+version=0.1
+author=phoenix-gis
+email=phoenixgis@sina.com
+
+about=This plugin provides a Chinese AI assistant, combining a LLM with the Phoenix-GIS knowledge database.
+
+tracker=https://www.phoenix-gis.cn/d/224-qgischa-jian-shi-yong-wen-ti-hui-zong
+repository=https://github.com/robert6757/chinese-ai-assistant
+# End of mandatory metadata
+
+# Recommended items:
+
+hasProcessingProvider=no
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=assistant, ai, chinese, china
+
+homepage=https://www.phoenix-gis.cn/
+category=Plugins
+icon=icon.png
+# experimental flag
+experimental=False
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
+# Since QGIS 3.8, a comma separated list of plugins to be installed
+# (or upgraded) can be specified.
+# Check the documentation for more information.
+# plugin_dependencies=
+
+Category of the plugin: Raster, Vector, Database or Web
+# category=
+
+# If the plugin can run on QGIS Server.
+server=False
+

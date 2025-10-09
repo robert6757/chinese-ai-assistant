@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/chinese_ai_assistant" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>

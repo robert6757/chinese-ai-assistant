@@ -23,15 +23,19 @@ import requests
 import webbrowser
 import re
 
-from PyQt5.QtCore import QByteArray, Qt, QUrl
-from PyQt5.QtGui import QTextDocument, QImage
+from PyQt5.QtCore import QByteArray, Qt, QUrl, pyqtSignal
+from PyQt5.QtGui import QTextDocument, QImage, QMouseEvent
 from PyQt5.QtWidgets import QTextBrowser
 
 class ChatbotBrowser(QTextBrowser):
+
+    show_setting_dlg = pyqtSignal()
+
     def __init__(self, iface, parent=None):
         super().__init__(parent)
         self.iface = iface
         self.markdown_content = ""
+        self.auto_scroll_to_bottom = True
 
         # Use a dictionary to cache downloaded images to prevent multiple downloads
         self.image_cache = {}
@@ -48,53 +52,62 @@ class ChatbotBrowser(QTextBrowser):
             if url_string in self.image_cache:
                 return self.image_cache[url_string]
 
-            # Fetch the image from the internet
             try:
                 response = requests.get(url_string, timeout=(2, 2))
-                if response.status_code == 200:
-                    image_data = QByteArray(response.content)
-                    image = QImage()
-                    if image.loadFromData(image_data):
-                        # Add the image to the cache and return it
-                        # In order to fit the window, we scaled the image.
-                        scaled_width = self.size().width()
-                        scaled_image = image.scaled(
-                            scaled_width,
-                            image.height() * scaled_width // image.width(),
-                            Qt.KeepAspectRatio,
-                            Qt.SmoothTransformation
-                        )
-                        self.image_cache[url_string] = scaled_image
-                        return scaled_image
-            except requests.exceptions.Timeout:
-                self.iface.messageBar().pushMessage(self.tr("Request timeout.") + url_string)
-                self.image_cache[url_string] = None
-                return None
-            except requests.exceptions.ConnectionError as e:
-                self.iface.messageBar().pushMessage(self.tr("Connection error.") + url_string)
-                self.image_cache[url_string] = None
-                return None
-            except requests.exceptions.RequestException as e:
-                self.iface.messageBar().pushMessage(self.tr("Request failed.") + url_string)
-                self.image_cache[url_string] = None
-                return None
+                # raise exception for http code.
+                response.raise_for_status()
+
+                image_data = QByteArray(response.content)
+                image = QImage()
+                if not image.loadFromData(image_data):
+                    raise ValueError("Failed to load image from data")
+
+                # Add the image to the cache and return it
+                scaled_width = self.size().width()
+                scaled_image = image.scaled(
+                    scaled_width,
+                    image.height() * scaled_width // image.width(),
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation
+                )
+                self.image_cache[url_string] = scaled_image
+                return scaled_image
+
             except Exception as e:
-                self.iface.messageBar().pushMessage(self.tr("Unexpected error loading image.") + url_string)
+                # catch all exceptions.
+                error_msg = f"Error loading image: {url_string}: {str(e)}"
+                self.iface.messageBar().pushMessage(error_msg)
                 self.image_cache[url_string] = None
                 return None
+
         # Do not load unknown format of resource.
         return None
 
     def append_markdown(self, content: str):
+        # save current scroll value.
+        scrollbar = self.verticalScrollBar()
+        current_scroll_value = scrollbar.value()
+
         self.markdown_content += content
 
         # update markdown content
         self.setMarkdown(self.markdown_content)
 
-        # scroll to bottom.
-        self.scroll_to_bottom()
+        if self.auto_scroll_to_bottom:
+            self.scroll_to_bottom()
+        else:
+            # resume scroll bar value.
+            scrollbar.setValue(current_scroll_value)
+
+    def pre_process_markdown(self):
+        # resume auto scroll to bottom.
+        self.auto_scroll_to_bottom = True
 
     def post_process_markdown(self):
+        # save current scroll value.
+        scrollbar = self.verticalScrollBar()
+        current_scroll_value = scrollbar.value()
+
         self.markdown_content += "\n\n---------\n\n"
 
         # deal with upl-image-preview block.
@@ -104,7 +117,12 @@ class ChatbotBrowser(QTextBrowser):
         self.markdown_content = self.replace_failed_images_with_links(self.markdown_content)
 
         self.setMarkdown(self.markdown_content)
-        self.scroll_to_bottom()
+
+        if self.auto_scroll_to_bottom:
+            self.scroll_to_bottom()
+        else:
+            # resume the score value.
+            scrollbar.setValue(current_scroll_value)
 
         # Check Result!
         # self.iface.messageBar().pushMessage(self.markdown_content)
@@ -130,12 +148,31 @@ class ChatbotBrowser(QTextBrowser):
         self.markdown_content = ""
         self.setMarkdown("")
         self.image_cache.clear()
+        self.auto_scroll_to_bottom = True
 
     def scroll_to_bottom(self):
         scrollbar = self.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
+    def mousePressEvent(self, event: QMouseEvent):
+        # forbid auto scroll to bottom
+        self.auto_scroll_to_bottom = False
+        super().mousePressEvent(event)
+
+    def wheelEvent(self, event):
+        # forbid auto scroll to bottom
+        self.auto_scroll_to_bottom = False
+        super().wheelEvent(event)
+
     def handle_click_chatbot_anchor(self, link: QUrl):
+        if link.scheme() == "agent":
+            # use agent to process.
+            process_name = link.host()
+            if process_name == "applyvip":
+                self.show_setting_dlg.emit()
+            return
+
+        # open web browser
         url_str = link.url()
         webbrowser.open(url_str)
 

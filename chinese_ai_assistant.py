@@ -23,13 +23,16 @@
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
-# Initialize Qt resources from file resources.py
-from .resources import *
+
+# Initialize Qt resources from file resources_rc.py
+# Extend to load root directory.
+import sys
+import os.path
+sys.path.append(os.path.dirname(__file__))
+from .resources_rc import *
 
 # Import the code for the DockWidget
 from .chinese_ai_assistant_dockwidget import ChineseAIAssistantDockWidget
-import os.path
-
 
 class ChineseAIAssistant:
     """QGIS Plugin Implementation."""
@@ -49,11 +52,11 @@ class ChineseAIAssistant:
         self.plugin_dir = os.path.dirname(__file__)
 
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale = QSettings().value('locale/userLocale')
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            'ChineseAIAssistant_{}.qm'.format(locale))
+            'ChineseAiAssistant_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()

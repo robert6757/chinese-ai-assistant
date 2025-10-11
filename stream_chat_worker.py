@@ -25,6 +25,8 @@ from PyQt5.QtCore import QThread, pyqtSignal, Qt, QTimer
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 from PyQt5.QtCore import QUrl
 
+from .global_defs import *
+
 class StreamChatWorker(QThread):
 
     # defines signals.
@@ -50,7 +52,7 @@ class StreamChatWorker(QThread):
     def run(self):
         """execute request"""
         try:
-            url = "http://127.0.0.1:8000/chat/stream"
+            url = AI_SERVER_DOMAIN + "/ai/v1/chat/stream"
 
             # create network request.
             request = QNetworkRequest(QUrl(url))

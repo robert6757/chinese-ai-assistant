@@ -53,7 +53,7 @@ class ChatbotBrowser(QTextBrowser):
                 return self.image_cache[url_string]
 
             try:
-                response = requests.get(url_string, timeout=(2, 2))
+                response = requests.get(url_string, timeout=(1, 2))
                 # raise exception for http code.
                 response.raise_for_status()
 
@@ -179,6 +179,6 @@ class ChatbotBrowser(QTextBrowser):
     def convert_upl_to_markdown_image(self, markdown_text):
         # regex: [upl-image-preview ...]
         pattern = r'\[upl-image-preview[^\]]*?url=([^\s\]]+)[^\]]*\]'
-        converted_text = re.sub(pattern, r'\n\n![Image](\1)', markdown_text)
+        converted_text = re.sub(pattern, r'\n\n![Image](\1)', markdown_text, flags=re.IGNORECASE)
         return converted_text
 

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
-                                 Global Definition
-  Define all global variables
+ ChineseBasemap
+                                 Pack plugin script
                               -------------------
-        begin                : 2025-10-10
+        begin                : 2025-08-15
         copyright            : (C) 2025 by phoenix-gis
         email                : phoenixgis@sina.com
         website              : phoenix-gis.cn
@@ -19,9 +19,26 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
+import configparser
+import zipfile
+from pathlib import Path
 
-VERSION = "0.1"
+def main_i():
+    current_dir = Path.cwd()
+    config = configparser.ConfigParser()
+    config.read(current_dir.joinpath("metadata.txt"), encoding="UTF-8")
+    version = config.get("general", "version")
+    filename = f"chinese_ai_assistant_{version}.zip"
 
-AI_SERVER_DOMAIN = "https://www.phoenix-gis.cn"
+    # zip the dist directory.
+    dist_dir = current_dir.joinpath("dist")
+    package_folder = dist_dir.joinpath("chinese_ai_assistant")
+    dest_zip_filepath = dist_dir.joinpath(filename)
+    with zipfile.ZipFile(dest_zip_filepath, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for file in package_folder.glob("**/*"):
+            zipf.write(file, file.relative_to(package_folder.parent))
+    print(f"pack finish: {dest_zip_filepath}")
 
-USER_EMAIL_TAG = "chinese-ai-assistant/email"
+if __name__ == "__main__":
+    main_i()

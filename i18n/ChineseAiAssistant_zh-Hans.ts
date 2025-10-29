@@ -4,13 +4,18 @@
 <context>
     <name>ChineseAIAssistant</name>
     <message>
-        <location filename="../chinese_ai_assistant.py" line="204"/>
+        <location filename="../chinese_ai_assistant.py" line="203"/>
         <source>&amp;Chinese AI Assistant</source>
         <translation>&amp;中文AI助手</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant.py" line="173"/>
+        <location filename="../chinese_ai_assistant.py" line="172"/>
         <source>Chinese AI Assistant</source>
+        <translation>中文AI助手</translation>
+    </message>
+    <message>
+        <location filename="../chinese_ai_assistant.py" line="69"/>
+        <source>ChineseAIAssistant</source>
         <translation>中文AI助手</translation>
     </message>
 </context>
@@ -104,7 +109,7 @@
     <message>
         <location filename="../setting_dialog.ui" line="44"/>
         <source>Apply for high-speed channel. Please enter your email address and click &apos;Apply&apos;. We will contact you via email within 24 hours. </source>
-        <translation type="unfinished">申请专用高速通道，请输入您的电子邮箱地址后，点击&quot;申请&quot;按钮。我们将会在24小时内发送邮件给您。请注意查收。</translation>
+        <translation>申请专用高速通道，请输入您的电子邮箱地址后，点击&quot;申请&quot;按钮。我们将会在24小时内发送邮件给您。请注意查收。</translation>
     </message>
     <message>
         <location filename="../setting_dialog.ui" line="56"/>

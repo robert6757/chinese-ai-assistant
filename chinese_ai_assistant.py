@@ -66,8 +66,7 @@ class ChineseAIAssistant:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Chinese AI Assistant')
-        # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'ChineseAIAssistant')
+        self.toolbar = self.iface.addToolBar(self.tr(u'ChineseAIAssistant'))
         self.toolbar.setObjectName(u'ChineseAIAssistant')
 
         #print "** INITIALIZING ChineseAIAssistant"

@@ -121,11 +121,8 @@ class ChatbotBrowser(QTextBrowser):
 
         self.setMarkdown(self.markdown_content)
 
-        if self.auto_scroll_to_bottom:
-            self.scroll_to_bottom()
-        else:
-            # resume the score value.
-            scrollbar.setValue(current_scroll_value)
+        # resume the score value.
+        scrollbar.setValue(current_scroll_value)
 
         # Check Result!
         # self.iface.messageBar().pushMessage(self.markdown_content)

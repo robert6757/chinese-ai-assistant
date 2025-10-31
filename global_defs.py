@@ -23,6 +23,5 @@
 VERSION = "0.1"
 
 AI_SERVER_DOMAIN = "https://www.phoenix-gis.cn"
-#AI_SERVER_DOMAIN = "http://127.0.0.1:8000"
 
 USER_EMAIL_TAG = "chinese-ai-assistant/email"

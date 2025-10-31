@@ -116,6 +116,9 @@ class ChatbotBrowser(QTextBrowser):
         # replace failed image with links.
         self.markdown_content = self.replace_failed_images_with_links(self.markdown_content)
 
+        # clean all html tags
+        self.markdown_content = self.clean_html_tag(self.markdown_content)
+
         self.setMarkdown(self.markdown_content)
 
         if self.auto_scroll_to_bottom:
@@ -143,6 +146,9 @@ class ChatbotBrowser(QTextBrowser):
                 return match.group(0)
 
         return re.sub(pattern, replace_match, markdown_text)
+
+    def clean_html_tag(self, markdown_text):
+        return re.sub(r'<\/?[a-zA-Z][^>]*>', '', markdown_text)
 
     def clear(self):
         self.markdown_content = ""

@@ -151,7 +151,9 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
         self.chatbot_browser.clear()
         self.plainTextEdit.clear()
+        self.chatbot_browser.pre_process_markdown()
         self.chatbot_browser.append_markdown(history_item["answer"], scroll_to_bottom=False)
+        self.chatbot_browser.post_process_markdown()
 
     def on_chunks_info_received(self, content):
         """receive the count of references"""

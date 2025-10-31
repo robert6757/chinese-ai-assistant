@@ -100,4 +100,4 @@ class HistoryManager:
     def __get_history_file_path(self):
         """get the history file path"""
         temp_dir = QStandardPaths.writableLocation(QStandardPaths.TempLocation)
-        return os.path.join(temp_dir, "chinese_ai_assistant_history.dat")
+        return os.path.join(temp_dir, "qgis-chinese-ai-assistant-plugin.dat")

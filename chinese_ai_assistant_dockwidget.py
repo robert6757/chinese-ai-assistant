@@ -22,11 +22,11 @@
 """
 
 import os
+import time
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QDockWidget, QGridLayout
+from qgis.PyQt.QtWidgets import QDockWidget, QGridLayout, QDialog
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtGui import QTextCursor
 from qgis.core import QgsSettings
 
 from .stream_chat_worker import StreamChatWorker
@@ -34,6 +34,8 @@ from .chatbot_browser import ChatbotBrowser
 from .setting_dialog import SettingDialog
 from .global_defs import *
 from .resources_rc import *
+from .history_manager import HistoryManager
+from .history_dialog import HistoryDialog
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'chinese_ai_assistant_dockwidget_base.ui'))
@@ -50,6 +52,7 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.setupUi(self)
 
         self.chatbot_browser = ChatbotBrowser(iface)
+        self.history_manager = HistoryManager()
 
         chatbot_layout = QGridLayout()
         chatbot_layout.setContentsMargins(0, 0, 0, 0)
@@ -60,6 +63,7 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btnClear.clicked.connect(self.handle_click_clear_btn)
         self.btnSetting.clicked.connect(self.handle_click_setting_btn)
         self.chatbot_browser.show_setting_dlg.connect(self.handle_click_setting_btn)
+        self.btnHistory.clicked.connect(self.handle_click_history_btn)
 
         # use custom function to deal with "Open Links".
         self.chatbot_browser.setOpenLinks(False)
@@ -73,6 +77,9 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
     def handle_click_send_or_terminate_btn(self):
         if self.btn_send_or_terminate_tag == 0:
+            # In order to  make the markdown render faster, we have to clear the previous markdown content.
+            self.chatbot_browser.clear()
+
             # add question in chatbot
             question_str = self.plainTextEdit.toPlainText()
             self.chatbot_browser.pre_process_markdown()
@@ -104,6 +111,8 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
             self.btn_send_or_terminate_tag = 1
             self.btnSendOrTerminate.setText(self.tr("Stop"))
+            self.btnHistory.setEnabled(False)
+            self.btnClear.setEnabled(False)
         elif self.btn_send_or_terminate_tag == 1:
             if self.chat_worker:
                 self.btnSendOrTerminate.setEnabled(False)
@@ -114,6 +123,8 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
             self.btnSendOrTerminate.setEnabled(True)
             self.btn_send_or_terminate_tag = 0
             self.btnSendOrTerminate.setText(self.tr("Send"))
+            self.btnHistory.setEnabled(True)
+            self.btnClear.setEnabled(True)
 
     def handle_click_clear_btn(self):
         self.chatbot_browser.clear()
@@ -124,6 +135,23 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         dlg.setModal(True)
         dlg.show()
         dlg.exec()
+
+    def handle_click_history_btn(self):
+        dlg = HistoryDialog(self.history_manager)
+        dlg.setModal(True)
+        dlg.show()
+        if dlg.exec() != QDialog.Accepted:
+            return
+
+        # retrieve history content
+        selected_history_ts = dlg.get_selected_history_timestamp()
+        history_item = self.history_manager.retrieve_history(selected_history_ts)
+        if history_item is None:
+            return
+
+        self.chatbot_browser.clear()
+        self.plainTextEdit.clear()
+        self.chatbot_browser.append_markdown(history_item["answer"], scroll_to_bottom=False)
 
     def on_chunks_info_received(self, content):
         """receive the count of references"""
@@ -139,6 +167,14 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btn_send_or_terminate_tag = 0
         self.btnSendOrTerminate.setText(self.tr("Send"))
         self.btnSendOrTerminate.setEnabled(True)
+        self.btnHistory.setEnabled(True)
+        self.btnClear.setEnabled(True)
+
+        # save to history
+        self.history_manager.put_history(
+            int(time.time()),
+            self.plainTextEdit.toPlainText(),
+            self.chatbot_browser.get_raw_markdown_content())
 
     def on_error_occurred(self, error_msg):
         """deal with errors"""
@@ -149,3 +185,5 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btn_send_or_terminate_tag = 0
         self.btnSendOrTerminate.setText(self.tr("Send"))
         self.btnSendOrTerminate.setEnabled(True)
+        self.btnHistory.setEnabled(True)
+        self.btnClear.setEnabled(True)

@@ -10,7 +10,7 @@ version=0.1
 author=phoenix-gis
 email=phoenixgis@sina.com
 
-about=This plugin provides a Chinese AI assistant that combines an LLM with the Phoenix-GIS knowledge database, offering instructions on QGIS, GIS algorithms, fundamental knowledge of GIS, and development with PyQGIS. 本插件结合大模型和凤凰地理社区知识库，提供中文AI助手。主要提供QGIS使用说明、算法原理、GIS基础知识、PyQGIS编程等。
+about=This plugin provides a Chinese AI assistant that combines an LLM with the Phoenix-GIS knowledge database, offering instructions on QGIS, GIS algorithms, fundamental knowledge of GIS, and development with PyQGIS. 本插件结合大模型和凤凰地理社区知识库，提供中文AI助手。主要包括QGIS使用说明、算法原理、GIS基础知识、PyQGIS编程等。
 
 tracker=https://www.phoenix-gis.cn/d/224-qgischa-jian-shi-yong-wen-ti-hui-zong
 repository=https://github.com/robert6757/chinese-ai-assistant

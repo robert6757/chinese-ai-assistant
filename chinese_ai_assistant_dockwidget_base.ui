@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>267</width>
+    <width>308</width>
     <height>495</height>
    </rect>
   </property>
@@ -35,7 +35,27 @@
     <property name="spacing">
      <number>3</number>
     </property>
-    <item row="0" column="0" colspan="4">
+    <item row="1" column="2">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>84</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="4">
+     <widget class="QPushButton" name="btnClear">
+      <property name="text">
+       <string>Clear</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="5">
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -114,6 +134,13 @@
       </widget>
      </widget>
     </item>
+    <item row="1" column="3">
+     <widget class="QPushButton" name="btnSendOrTerminate">
+      <property name="text">
+       <string>Send</string>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="0">
      <widget class="QToolButton" name="btnSetting">
       <property name="toolTip">
@@ -124,34 +151,21 @@
       </property>
       <property name="icon">
        <iconset resource="resources.qrc">
-        <normaloff>:/plugins/chinese_ai_assistant/image/options.png</normaloff>:/plugins/chinese_ai_assistant/image/options.png</iconset>
+        <normaloff>:/plugins/chinese_ai_assistant/image/settings.svg</normaloff>:/plugins/chinese_ai_assistant/image/settings.svg</iconset>
       </property>
      </widget>
     </item>
     <item row="1" column="1">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+     <widget class="QToolButton" name="btnHistory">
+      <property name="toolTip">
+       <string>History List</string>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>84</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="2">
-     <widget class="QPushButton" name="btnSendOrTerminate">
       <property name="text">
-       <string>Send</string>
+       <string/>
       </property>
-     </widget>
-    </item>
-    <item row="1" column="3">
-     <widget class="QPushButton" name="btnClear">
-      <property name="text">
-       <string>Clear</string>
+      <property name="icon">
+       <iconset resource="resources.qrc">
+        <normaloff>:/plugins/chinese_ai_assistant/image/list.svg</normaloff>:/plugins/chinese_ai_assistant/image/list.svg</iconset>
       </property>
      </widget>
     </item>

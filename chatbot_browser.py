@@ -83,7 +83,7 @@ class ChatbotBrowser(QTextBrowser):
         # Do not load unknown format of resource.
         return None
 
-    def append_markdown(self, content: str):
+    def append_markdown(self, content: str, scroll_to_bottom = True):
         # save current scroll value.
         scrollbar = self.verticalScrollBar()
         current_scroll_value = scrollbar.value()
@@ -93,7 +93,7 @@ class ChatbotBrowser(QTextBrowser):
         # update markdown content
         self.setMarkdown(self.markdown_content)
 
-        if self.auto_scroll_to_bottom:
+        if scroll_to_bottom and self.auto_scroll_to_bottom:
             self.scroll_to_bottom()
         else:
             # resume scroll bar value.
@@ -181,4 +181,7 @@ class ChatbotBrowser(QTextBrowser):
         pattern = r'\[upl-image-preview[^\]]*?url=([^\s\]]+)[^\]]*\]'
         converted_text = re.sub(pattern, r'\n\n![Image](\1)', markdown_text, flags=re.IGNORECASE)
         return converted_text
+
+    def get_raw_markdown_content(self):
+        return self.markdown_content
 

@@ -22,22 +22,22 @@
 <context>
     <name>ChineseAIAssistantDockWidget</name>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="79"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="86"/>
         <source>**Question:</source>
         <translation>**问题：</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="80"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="87"/>
         <source>**Answer:</source>
         <translation>**回答：</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="106"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="113"/>
         <source>Stop</source>
         <translation>停止</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="150"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="186"/>
         <source>Send</source>
         <translation>发送</translation>
     </message>
@@ -74,29 +74,34 @@
         <translation>中文AI助手</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="54"/>
+        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="74"/>
         <source>Chatbot:</source>
         <translation>对话：</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="81"/>
+        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="101"/>
         <source>My Question:</source>
         <translation>问题：</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="120"/>
+        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="147"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="147"/>
+        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="140"/>
         <source>Send</source>
         <translation>发送</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="154"/>
+        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="54"/>
         <source>Clear</source>
         <translation>清除</translation>
+    </message>
+    <message>
+        <location filename="../chinese_ai_assistant_dockwidget_base.ui" line="161"/>
+        <source>History List</source>
+        <translation>历史记录</translation>
     </message>
 </context>
 <context>
@@ -125,6 +130,42 @@
         <location filename="../setting_dialog.ui" line="90"/>
         <source>OK</source>
         <translation>确认</translation>
+    </message>
+</context>
+<context>
+    <name>HistoryDialog</name>
+    <message>
+        <location filename="../history_dialog.py" line="68"/>
+        <source>Delete All Chat History</source>
+        <translation>删除所有历史对话</translation>
+    </message>
+    <message>
+        <location filename="../history_dialog.py" line="68"/>
+        <source>Are you sure you want to delete all chat history?</source>
+        <translation>确认删除所有历史对话记录吗？</translation>
+    </message>
+</context>
+<context>
+    <name>HistoryDlg</name>
+    <message>
+        <location filename="../history_dialog.ui" line="14"/>
+        <source>History</source>
+        <translation>历史对话记录</translation>
+    </message>
+    <message>
+        <location filename="../history_dialog.ui" line="48"/>
+        <source>Open</source>
+        <translation>打开</translation>
+    </message>
+    <message>
+        <location filename="../history_dialog.ui" line="55"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../history_dialog.ui" line="62"/>
+        <source>Remove All History</source>
+        <translation>删除所有历史对话记录</translation>
     </message>
 </context>
 <context>

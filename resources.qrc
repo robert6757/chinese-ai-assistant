@@ -1,6 +1,8 @@
 <RCC>
   <qresource prefix="/plugins/chinese_ai_assistant">
-    <file>image/options.png</file>
+    <file>image/removeAll.svg</file>
+    <file>image/list.svg</file>
     <file>icon.png</file>
+    <file>image/settings.svg</file>
   </qresource>
 </RCC>

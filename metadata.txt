@@ -27,7 +27,7 @@ changelog=Version 0.1 2025-10-29
 # Tags are comma separated with spaces allowed
 tags=assistant, ai, chinese, china
 
-homepage=https://www.phoenix-gis.cn/
+homepage=https://github.com/robert6757/chinese-ai-assistant
 category=Plugins
 icon=icon.png
 # experimental flag

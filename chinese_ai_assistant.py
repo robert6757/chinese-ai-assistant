@@ -71,9 +71,7 @@ class ChineseAIAssistant:
 
         #print "** INITIALIZING ChineseAIAssistant"
 
-        self.pluginIsActive = False
         self.dockwidget = None
-
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -176,7 +174,7 @@ class ChineseAIAssistant:
             parent=self.iface.mainWindow())
 
         # show docking widget in initializing.
-        self.run()
+        self.show_dockwidget(True)
 
     #--------------------------------------------------------------------------
 
@@ -193,9 +191,6 @@ class ChineseAIAssistant:
         # Commented next statement since it causes QGIS crashe
         # when closing the docked window:
         # self.dockwidget = None
-
-        self.pluginIsActive = False
-
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -214,23 +209,23 @@ class ChineseAIAssistant:
 
     def run(self):
         """Run method that loads and starts the plugin"""
+        # switch plugin active.
+        dockwidget_visible = self.dockwidget.isVisible()
+        self.show_dockwidget(not dockwidget_visible)
 
-        if not self.pluginIsActive:
-            self.pluginIsActive = True
-
-            #print "** STARTING ChineseAIAssistant"
-
-            # dockwidget may not exist if:
-            #    first run of plugin
-            #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget == None:
-                # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = ChineseAIAssistantDockWidget(self.iface)
+    def show_dockwidget(self, is_show):
+        if self.dockwidget == None:
+            # Create the dockwidget (after translation) and keep reference
+            self.dockwidget = ChineseAIAssistantDockWidget(self.iface)
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
-            # show the dockwidget
-            # TODO: fix to allow choice of dock location
+            # add the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+
+        if is_show:
             self.dockwidget.show()
+        else:
+            self.dockwidget.hide()
+

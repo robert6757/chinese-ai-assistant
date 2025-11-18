@@ -175,6 +175,9 @@ class ChineseAIAssistant:
             callback=self.run,
             parent=self.iface.mainWindow())
 
+        # show docking widget in initializing.
+        self.run()
+
     #--------------------------------------------------------------------------
 
     def onClosePlugin(self):

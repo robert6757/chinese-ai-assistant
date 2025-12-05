@@ -19,18 +19,17 @@
  ***************************************************************************/
 """
 
-import requests
 import webbrowser
 import re
-import time
 from threading import Lock
 
-from PyQt5.QtCore import QByteArray, Qt, QUrl, pyqtSignal
+from PyQt5.QtCore import QByteArray, Qt, QUrl, pyqtSignal, QTimer
 from PyQt5.QtGui import QTextDocument, QImage, QMouseEvent
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 from PyQt5.QtWidgets import QTextBrowser
 
-class ChatbotBrowser(QTextBrowser):
 
+class ChatbotBrowser(QTextBrowser):
     show_setting_dlg = pyqtSignal()
     trigger_feedback = pyqtSignal(int)
 
@@ -39,79 +38,48 @@ class ChatbotBrowser(QTextBrowser):
         self.iface = iface
         self.markdown_content = ""
         self.auto_scroll_to_bottom = True
+        self.setMouseTracking(True)
 
         # Use a dictionary to cache downloaded images to prevent multiple downloads
         self.image_cache = {}
 
-        self.method_lock = Lock()
+        # pending loading parameters.
+        self.pending_images = set()
+        self.waiting_timer = QTimer(self)
+        self.waiting_timer.timeout.connect(self._finalize_markdown_display)
+
+        self.network_manager = QNetworkAccessManager(self)
+        self.network_manager.finished.connect(self._on_image_downloaded)
+
+        # prevent append content in multithread.
+        self.content_lock = Lock()
 
         self.anchorClicked.connect(self.handle_click_chatbot_anchor)
-
-        self.setMouseTracking(True)
 
     def loadResource(self, type, name):
         """
         Overrides the standard loadResource method to handle network requests for images.
         """
-
         if type == QTextDocument.ImageResource and name.scheme() in ('http', 'https'):
             url_string = name.toString()
             # Check if the image is already in the cache
             if url_string in self.image_cache:
                 return self.image_cache[url_string]
 
-            try:
-                # using stream mode, manually control loading image.
-                downloading_start_time = time.time()
-
-                # in order to shorten loading time, timeout is only 1.
-                response = requests.get(url_string, timeout=1, stream=True)
-                response.raise_for_status()
-
-                # control downloading time.
-                content_chunks = []
-                for chunk in response.iter_content(chunk_size=8192):
-                    if time.time() - downloading_start_time > 3:
-                        raise requests.exceptions.Timeout("Download image took too long")
-
-                    if chunk:
-                        content_chunks.append(chunk)
-
-                # combine all chunks.
-                image_data = QByteArray(b''.join(content_chunks))
-                image = QImage()
-                if not image.loadFromData(image_data):
-                    raise ValueError("Failed to load image from data")
-
-                # Add the image to the cache and return it
-                available_width = self.size().width()
-                if image.width() > available_width:
-                    scaled_image = image.scaledToWidth(available_width, Qt.SmoothTransformation)
-                else:
-                    scaled_image = image
-
-                self.image_cache[url_string] = scaled_image
-                return scaled_image
-
-            except requests.exceptions.Timeout:
-                # timeout exception.
-                error_msg = f"Image download timeout: {url_string}"
-                self.iface.messageBar().pushMessage(error_msg)
-                self.image_cache[url_string] = None
+            # Check whether in pending list.
+            if url_string in self.pending_images:
                 return None
-            except Exception as e:
-                # catch all exceptions.
-                error_msg = f"Error loading image: {url_string}: {str(e)}"
-                self.iface.messageBar().pushMessage(error_msg)
-                self.image_cache[url_string] = None
-                return None
+
+            self._download_image_async(url_string)
+
+            return None
 
         # Do not load unknown format of resource.
         return None
 
     def append_markdown(self, content: str, scroll_to_bottom=True):
         # acquire lock
-        if not self.method_lock.acquire(blocking=False):
+        if not self.content_lock.acquire(blocking=False):
             # only append to variable without really drawing it.
             self.markdown_content += content
             return
@@ -123,30 +91,33 @@ class ChatbotBrowser(QTextBrowser):
 
             self.markdown_content += content
 
+            # clean all html tags
+            self.markdown_content = self.clean_html_tag(self.markdown_content)
+
             # update markdown content
             self.setMarkdown(self.markdown_content)
 
             if scroll_to_bottom and self.auto_scroll_to_bottom:
                 self.scroll_to_bottom()
             else:
-                # resume scroll bar value.
+                # resume scroll bar value and disable auto scrolling to bottom.
                 scrollbar.setValue(current_scroll_value)
+                self.auto_scroll_to_bottom = False
         finally:
             # release lock
-            self.method_lock.release()
+            self.content_lock.release()
 
     def pre_process_markdown(self):
         # resume auto scroll to bottom.
         self.auto_scroll_to_bottom = True
+        self.pending_images.clear()
+        self.waiting_timer.stop()
 
-    def post_process_markdown(self, show_feedback = True):
-        # save current scroll value.
-        scrollbar = self.verticalScrollBar()
-        current_scroll_value = scrollbar.value()
-
+    def post_process_markdown(self, show_feedback=True):
         # add feedback
         if show_feedback:
-            self.markdown_content += "\n\n" + self.tr("Was this answer helpful? [Yes](agent://feedback/5) | [No](agent://feedback/1)")
+            self.markdown_content += "\n\n" + self.tr(
+                "Was this answer helpful? [Yes](agent://feedback/5) | [No](agent://feedback/1)")
 
         self.markdown_content += "\n\n---------\n\n"
 
@@ -156,16 +127,8 @@ class ChatbotBrowser(QTextBrowser):
         # replace failed image with links.
         self.markdown_content = self.replace_failed_images_with_links(self.markdown_content)
 
-        # clean all html tags
-        self.markdown_content = self.clean_html_tag(self.markdown_content)
-
-        self.setMarkdown(self.markdown_content)
-
-        if self.auto_scroll_to_bottom:
-            self.scroll_to_bottom()
-        else:
-            # resume the scroll value.
-            scrollbar.setValue(current_scroll_value)
+        # wait for finalizing.
+        self.waiting_timer.start(500)
 
         # Check Result!
         # self.iface.messageBar().pushMessage(self.markdown_content)
@@ -195,6 +158,8 @@ class ChatbotBrowser(QTextBrowser):
         self.setMarkdown("")
         self.image_cache.clear()
         self.auto_scroll_to_bottom = True
+        self.pending_images.clear()
+        self.waiting_timer.stop()
 
     def scroll_to_bottom(self):
         scrollbar = self.verticalScrollBar()
@@ -226,11 +191,11 @@ class ChatbotBrowser(QTextBrowser):
         return converted_text
 
     def get_raw_markdown_content(self):
-        self.method_lock.acquire()
+        self.content_lock.acquire()
         try:
             return self.markdown_content
         finally:
-            self.method_lock.release()
+            self.content_lock.release()
 
     def mousePressEvent(self, event: QMouseEvent):
         # forbid auto scroll to bottom
@@ -317,3 +282,76 @@ class ChatbotBrowser(QTextBrowser):
             # show error message.
             error_msg = f"Error in _handle_image_click: {e}"
             self.iface.messageBar().pushMessage(error_msg)
+
+    def _download_image_async(self, url_string):
+        if url_string in self.pending_images:
+            return
+
+        self.pending_images.add(url_string)
+
+        # build request
+        request = QNetworkRequest(QUrl(url_string))
+        request.setTransferTimeout(1000)
+        self.network_manager.get(request)
+
+    def _on_image_downloaded(self, reply):
+        """deal with downloaded image."""
+        url_string = reply.url().toString()
+
+        # remove from pending list.
+        if url_string in self.pending_images:
+            self.pending_images.remove(url_string)
+
+        # deal with errors.
+        error = reply.error()
+        if error != QNetworkReply.NoError:
+            self._handle_download_error(url_string, reply.errorString())
+            reply.deleteLater()
+            return
+
+        # read data into memory.
+        image_data = reply.readAll()
+        if image_data.isEmpty():
+            self._handle_download_error(url_string, "Empty response")
+            reply.deleteLater()
+            return
+
+        # load data as image.
+        image = QImage()
+        image.loadFromData(image_data)
+
+        # shrink the large image
+        available_width = self.size().width()
+        if image.width() > available_width:
+            scaled_image = image.scaledToWidth(available_width, Qt.SmoothTransformation)
+        else:
+            scaled_image = image
+
+        # save to cache.
+        self.image_cache[url_string] = scaled_image
+        reply.deleteLater()
+
+    def _handle_download_error(self, url_string, error_msg):
+        """deal with errors"""
+        # save None to the image_cache
+        self.image_cache[url_string] = None
+
+        # show error on message bar.
+        error_msg_display = f"Error loading image: {url_string}: {error_msg}"
+        self.iface.messageBar().pushMessage(error_msg_display)
+
+    def _finalize_markdown_display(self):
+        if len(self.pending_images) > 0:
+            return
+
+        current_scroll_value = self.verticalScrollBar().value()
+
+        self.waiting_timer.stop()
+
+        # finally update markdown
+        self.setMarkdown(self.markdown_content)
+
+        if self.auto_scroll_to_bottom:
+            self.scroll_to_bottom()
+        else:
+            self.verticalScrollBar().setValue(current_scroll_value)

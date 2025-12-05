@@ -72,7 +72,7 @@ class StreamChatWorker(QThread):
             self.exec_()
 
         except Exception as e:
-            self.error_occurred.emit(self.tr("Network Error:") + {str(e)})
+            self.error_occurred.emit(self.tr("Network Error:") + str(e))
 
     def on_ready_read(self):
         """deal with raw content"""

@@ -2,14 +2,22 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh">
 <context>
+    <name>ChatbotBrowser</name>
+    <message>
+        <location filename="../chatbot_browser.py" line="156"/>
+        <source>Was this answer helpful? [Yes](agent://feedback/5) | [No](agent://feedback/1)</source>
+        <translation>以上回答对您有帮助吗：[有用](agent://feedback/5) | [没用](agent://feedback/1)</translation>
+    </message>
+</context>
+<context>
     <name>ChineseAIAssistant</name>
     <message>
-        <location filename="../chinese_ai_assistant.py" line="203"/>
+        <location filename="../chinese_ai_assistant.py" line="201"/>
         <source>&amp;Chinese AI Assistant</source>
         <translation>&amp;中文AI助手</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant.py" line="172"/>
+        <location filename="../chinese_ai_assistant.py" line="170"/>
         <source>Chinese AI Assistant</source>
         <translation>中文AI助手</translation>
     </message>
@@ -22,22 +30,22 @@
 <context>
     <name>ChineseAIAssistantDockWidget</name>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="86"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="91"/>
         <source>**Question:</source>
         <translation>**问题：</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="87"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="92"/>
         <source>**Answer:</source>
         <translation>**回答：</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="113"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="122"/>
         <source>Stop</source>
         <translation>停止</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="186"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="226"/>
         <source>Send</source>
         <translation>发送</translation>
     </message>
@@ -64,6 +72,31 @@
         <location filename="../chinese_ai_assistant_dockwidget.py" line="133"/>
         <source>**The content below is based on [Phienix-GIS](https://www.phoenix-gis.cn) knowledge db.**</source>
         <translation type="obsolete">**以下内容基于[凤凰地理社区](https://www.phoenix-gis.cn)知识库生成。**</translation>
+    </message>
+    <message>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="183"/>
+        <source>Tip</source>
+        <translation>提示</translation>
+    </message>
+    <message>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="183"/>
+        <source>Thank you for your feedback.</source>
+        <translation>感谢您的反馈！</translation>
+    </message>
+    <message>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="192"/>
+        <source>Error</source>
+        <translation>错误</translation>
+    </message>
+    <message>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="187"/>
+        <source>Failed to submit your feedback. Please try again later.</source>
+        <translation>您的反馈提交失败，请稍后再试。</translation>
+    </message>
+    <message>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="192"/>
+        <source>Network error. Please check your connection and try again.</source>
+        <translation>网络错误：请检查您的网络连接后，再次尝试。</translation>
     </message>
 </context>
 <context>

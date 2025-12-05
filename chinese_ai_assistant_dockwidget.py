@@ -23,9 +23,11 @@
 
 import os
 import time
+import requests
+import uuid
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtWidgets import QDockWidget, QGridLayout, QDialog
+from qgis.PyQt.QtWidgets import QDockWidget, QGridLayout, QDialog, QMessageBox
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsSettings
 
@@ -40,8 +42,8 @@ from .history_dialog import HistoryDialog
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'chinese_ai_assistant_dockwidget_base.ui'))
 
-class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
+class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
 
     def __init__(self, iface, parent=None):
@@ -63,6 +65,7 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btnClear.clicked.connect(self.handle_click_clear_btn)
         self.btnSetting.clicked.connect(self.handle_click_setting_btn)
         self.chatbot_browser.show_setting_dlg.connect(self.handle_click_setting_btn)
+        self.chatbot_browser.trigger_feedback.connect(self.handle_click_feedback)
         self.btnHistory.clicked.connect(self.handle_click_history_btn)
 
         # use custom function to deal with "Open Links".
@@ -70,6 +73,8 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
         # 0: Send 1: Terminate
         self.btn_send_or_terminate_tag = 0
+
+        self.chat_id = None
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -91,7 +96,10 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
             if not user_email:
                 user_email = ""
 
-            # repare request body.
+            # build new chat id.
+            self.chat_id = uuid.uuid4().hex
+
+            # prepare request body.
             request_data = {
                 "prompt": question_str,
                 "history": [],
@@ -99,7 +107,8 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
                 "similarity_threshold": 0.5,
                 "chunk_cnt": 5,
                 "email": user_email,
-                "version": VERSION
+                "version": VERSION,
+                "chat_id": self.chat_id
             }
 
             self.chat_worker = StreamChatWorker(request_data)
@@ -129,6 +138,7 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
     def handle_click_clear_btn(self):
         self.chatbot_browser.clear()
         self.plainTextEdit.clear()
+        self.chat_id = None
 
     def handle_click_setting_btn(self):
         dlg = SettingDialog(self.iface, parent=self)
@@ -151,9 +161,37 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
         self.chatbot_browser.clear()
         self.plainTextEdit.clear()
+        self.chat_id = None
         self.chatbot_browser.pre_process_markdown()
         self.chatbot_browser.append_markdown(history_item["answer"], scroll_to_bottom=False)
-        self.chatbot_browser.post_process_markdown()
+        self.chatbot_browser.post_process_markdown(show_feedback=False)
+
+    def handle_click_feedback(self, star: int):
+        if not self.chat_id:
+            return
+
+        try:
+            # send feedback to server
+            response = requests.post (
+                AI_SERVER_DOMAIN + "/ai/v1/feedback",
+                json={"chat_id": self.chat_id, "star": star},
+                timeout=2
+            )
+
+            # check response
+            if response.status_code == 200:
+                QMessageBox.information(self, self.tr("Tip"),
+                                        self.tr("Thank you for your feedback."),
+                                        QMessageBox.Ok)
+            else:
+                QMessageBox.warning(self, self.tr("Error"),
+                                    self.tr("Failed to submit your feedback. Please try again later."),
+                                    QMessageBox.Ok)
+
+        except requests.exceptions.RequestException as e:
+            QMessageBox.critical(self, self.tr("Error"),
+                                 self.tr("Network error. Please check your connection and try again."),
+                                 QMessageBox.Ok)
 
     def on_chunks_info_received(self, content):
         """receive the count of references"""

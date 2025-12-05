@@ -6,7 +6,7 @@
 name=Chinese AI Assistant
 qgisMinimumVersion=3.0
 description=This plugin deeply integrates an LLM with the Phoenix-GIS knowledge base, providing you with professional GIS querying and QGIS operational guidance.
-version=0.2
+version=0.3
 author=phoenix-gis
 email=phoenixgis@sina.com
 
@@ -20,9 +20,12 @@ repository=https://github.com/robert6757/chinese-ai-assistant
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=Version 0.2 2025-11-18
+changelog=Version 0.3 2025-12-05
+      * Add feedback feature and fix bugs
+      * 增加反馈功能并修复Bug。
+      * Version 0.2 2025-11-18
       * Fix bugs.
-      * 修复已知Bug。
+      * 修复Bug。
       * Version 0.1 2025-10-29
       * The first version with support for an AI chatbot.
       * 插件首版本，提供AI问答功能。

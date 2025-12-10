@@ -20,7 +20,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-
+import json
 import os
 import time
 import requests
@@ -29,7 +29,7 @@ import uuid
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDockWidget, QGridLayout, QDialog, QMessageBox
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.core import QgsSettings
+from qgis.core import QgsSettings, QgsProject, Qgis, QgsMapLayer
 
 from .stream_chat_worker import StreamChatWorker
 from .chatbot_browser import ChatbotBrowser
@@ -92,13 +92,19 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
             self.chatbot_browser.append_markdown(self.tr("**Answer:") + "**\n\n")
 
             gSetting = QgsSettings()
-            user_email = gSetting.value(USER_EMAIL_TAG)
-            if not user_email:
-                user_email = ""
+			
+			# email
+            user_email = gSetting.value(USER_EMAIL_TAG, "")
+
+            # ui language
+            lang = gSetting.value('/locale/userLocale', 'en_US')
 
             # build new chat id.
             self.chat_id = uuid.uuid4().hex
 
+            # get qgis basic information in project context.
+            workspace_info = self._get_workspace_info()
+			
             # prepare request body.
             request_data = {
                 "prompt": question_str,
@@ -108,7 +114,9 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
                 "chunk_cnt": 5,
                 "email": user_email,
                 "version": VERSION,
-                "chat_id": self.chat_id
+                "chat_id": self.chat_id,
+                "lang": lang,
+                "workspace": workspace_info
             }
 
             self.chat_worker = StreamChatWorker(request_data)
@@ -227,3 +235,102 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btnSendOrTerminate.setEnabled(True)
         self.btnHistory.setEnabled(True)
         self.btnClear.setEnabled(True)
+
+    def _get_workspace_info(self):
+        workspace_info = {}
+
+        # qgis version
+        workspace_info["version"] = Qgis.version()
+
+        # get working project
+        project = QgsProject.instance()
+
+        # CRS part
+        project_crs = project.crs()
+        workspace_info["CRSAuthId"] = project_crs.authid()
+
+        # get map canvas parameters.
+        map_canvas = self.iface.mapCanvas()
+        canvas_extent = map_canvas.extent()
+        workspace_info["MapCanvasExtent"] = [
+            f"{canvas_extent.xMinimum():.6f}",
+            f"{canvas_extent.yMinimum():.6f}",
+            f"{canvas_extent.xMaximum():.6f}",
+            f"{canvas_extent.yMaximum():.6f}"]
+
+        # enumerate layers in project.
+        layers_info = []
+        layers = project.mapLayers().values()
+        for layer in layers:
+            layer_info = {}
+            layer_info["name"] = f"{layer.name()}"
+            layer_info["type"] = f"{layer.type().name}"
+
+            crs = layer.crs()
+            layer_info["CRSAuthId"] = f"{crs.authid()}"
+
+            # get fields data in vector data.
+            if layer.type() == QgsMapLayer.VectorLayer:
+                fields_info = []
+                fields = layer.fields()
+                for field in fields:
+                    field_info = {
+                        "name": field.name(),
+                        "type": field.typeName(),
+                        "length": field.length(),
+                        "precision": field.precision()
+                    }
+                    fields_info.append(field_info)
+                layer_info["fields"] = fields_info
+
+            # get bands data in raster data.
+            elif layer.type() == QgsMapLayer.RasterLayer:
+                bands_info = []
+                provider = layer.dataProvider()
+                if provider:
+                    # basic raster variables.
+                    layer_info["raster_width"] = provider.xSize()
+                    layer_info["raster_height"] = provider.ySize()
+
+                    # extent of data.
+                    extent = provider.extent()
+                    layer_info["raster_extent"] = [
+                        f"{extent.xMinimum():.6f}",
+                        f"{extent.yMinimum():.6f}",
+                        f"{extent.xMaximum():.6f}",
+                        f"{extent.yMaximum():.6f}"
+                    ]
+
+                    pixel_size_x = (extent.xMaximum() - extent.xMinimum()) / provider.xSize()
+                    pixel_size_y = (extent.yMaximum() - extent.yMinimum()) / provider.ySize()
+                    layer_info["pixel_size"] = [
+                        f"{pixel_size_x:.6f}",
+                        f"{pixel_size_y:.6f}"
+                    ]
+
+                    layer_info["origin"] = [
+                        f"{extent.xMinimum():.6f}",
+                        f"{extent.yMaximum():.6f}"
+                    ]
+
+                    band_count = provider.bandCount()
+                    for band in range(1, band_count + 1):
+                        band_info = {
+                            "band_number": band,
+                            "band_name": f"Band {band}",
+                            "data_type": provider.dataType(band),
+                            "color_interpretation": provider.colorInterpretation(band).name
+                        }
+                        stats = provider.bandStatistics(band)
+                        if stats:
+                            band_info["minimum"] = stats.minimumValue
+                            band_info["maximum"] = stats.maximumValue
+                            band_info["mean"] = stats.mean
+                            band_info["std_dev"] = stats.stdDev
+                        bands_info.append(band_info)
+                layer_info["bands"] = bands_info
+
+            layers_info.append(layer_info)
+        workspace_info["Layers"] = layers_info
+
+        return workspace_info

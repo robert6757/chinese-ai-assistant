@@ -32,6 +32,7 @@ from PyQt5.QtWidgets import QTextBrowser
 class ChatbotBrowser(QTextBrowser):
     show_setting_dlg = pyqtSignal()
     trigger_feedback = pyqtSignal(int)
+    trigger_repeat = pyqtSignal()
 
     def __init__(self, iface, parent=None):
         super().__init__(parent)
@@ -56,6 +57,8 @@ class ChatbotBrowser(QTextBrowser):
 
         self.anchorClicked.connect(self.handle_click_chatbot_anchor)
 
+        self.feedback_text = self.tr("Was this answer helpful? [Yes](agent://feedback/5) | [No](agent://feedback/1) | [Repeat](agent://repeat)")
+        self.tail_splited_line = "\n\n---------\n\n"
     def loadResource(self, type, name):
         """
         Overrides the standard loadResource method to handle network requests for images.
@@ -116,10 +119,9 @@ class ChatbotBrowser(QTextBrowser):
     def post_process_markdown(self, show_feedback=True):
         # add feedback
         if show_feedback:
-            self.markdown_content += "\n\n" + self.tr(
-                "Was this answer helpful? [Yes](agent://feedback/5) | [No](agent://feedback/1)")
+            self.markdown_content += "\n\n" + self.feedback_text
 
-        self.markdown_content += "\n\n---------\n\n"
+        self.markdown_content += self.tail_splited_line
 
         # deal with upl-image-preview block.
         self.markdown_content = self.convert_upl_to_markdown_image(self.markdown_content)
@@ -178,6 +180,8 @@ class ChatbotBrowser(QTextBrowser):
                 self.show_setting_dlg.emit()
             elif process_name == "feedback":
                 self.trigger_feedback.emit(int(link.path()[1:]))
+            elif process_name == "repeat":
+                self.trigger_repeat.emit()
             return
 
         # open web browser
@@ -193,7 +197,11 @@ class ChatbotBrowser(QTextBrowser):
     def get_raw_markdown_content(self):
         self.content_lock.acquire()
         try:
-            return self.markdown_content
+            # return the whole content without feedback and tail text.
+            ret_content = self.markdown_content
+            ret_content = ret_content.replace(self.feedback_text, "")
+            ret_content = ret_content.replace(self.tail_splited_line, "")
+            return ret_content
         finally:
             self.content_lock.release()
 

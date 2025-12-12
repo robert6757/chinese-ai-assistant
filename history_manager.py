@@ -28,29 +28,30 @@ class HistoryManager:
 
     def __init__(self):
         self.history_file = self.__get_history_file_path()
-
-    def put_history(self, timestamp: int, question: str, answer: str):
+    def put_history(self, timestamp: int, pre_timestamp:int, question: str, answer: str):
         """add new history"""
         histories = self._load_histories()
 
-        # check timestamp
-        found = False
-        for item in histories:
-            if item['timestamp'] == timestamp:
-                item.update({'question': question, 'answer': answer})
-                found = True
-                break
-
         # add new item if the timestamp not found.
-        if not found:
-            histories.append({
-                'timestamp': timestamp,
-                'question': question,
-                'answer': answer
-            })
+        histories.append({
+            'timestamp': timestamp,
+            'pre_timestamp': pre_timestamp,
+            'question': question,
+            'answer': answer
+        })
 
         self._save_histories(histories)
 
+    def remove_history(self, timestamp: int):
+        """remove history by timestamp"""
+        histories = self._load_histories()
+
+        new_histories = [item for item in histories if item['timestamp'] != timestamp]
+
+        if len(new_histories) != len(histories):
+            self._save_histories(new_histories)
+            return True
+        return False
     def retrieve_history(self, timestamp):
         """retrieve the history chat base on timestamp."""
         histories = self._load_histories()
@@ -58,13 +59,11 @@ class HistoryManager:
             if item['timestamp'] == timestamp:
                 return item
         return None
-
     def enum_question(self):
         """enumerate all question sorted by timestamp."""
         histories = self._load_histories()
         sorted_histories = sorted(histories, key=lambda x: x['timestamp'], reverse=True)
         return [item for item in sorted_histories]
-
     def clear_history(self):
         """clear all history"""
         try:
@@ -74,7 +73,6 @@ class HistoryManager:
             return True
         except OSError:
             return False
-
     def _load_histories(self):
         """load history from file."""
         if not os.path.exists(self.history_file):
@@ -85,7 +83,6 @@ class HistoryManager:
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
             return []
-
     def _save_histories(self, histories):
         """save history to file."""
         try:
@@ -96,7 +93,6 @@ class HistoryManager:
                 json.dump(histories, f, ensure_ascii=False, indent=2)
         except IOError:
             pass
-
     def __get_history_file_path(self):
         """get the history file path"""
         temp_dir = QStandardPaths.writableLocation(QStandardPaths.TempLocation)

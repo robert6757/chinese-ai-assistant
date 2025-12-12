@@ -6,7 +6,12 @@
     <message>
         <location filename="../chatbot_browser.py" line="156"/>
         <source>Was this answer helpful? [Yes](agent://feedback/5) | [No](agent://feedback/1)</source>
-        <translation>以上回答对您有帮助吗：[有用](agent://feedback/5) | [没用](agent://feedback/1)</translation>
+        <translation type="obsolete">以上回答对您有帮助吗：[有用](agent://feedback/5) | [没用](agent://feedback/1)</translation>
+    </message>
+    <message>
+        <location filename="../chatbot_browser.py" line="60"/>
+        <source>Was this answer helpful? [Yes](agent://feedback/5) | [No](agent://feedback/1) | [Repeat](agent://repeat)</source>
+        <translation type="unfinished">以上回答对您有帮助吗：[有用](agent://feedback/5) | [没用](agent://feedback/1) | [重新生成](agent://repeat)</translation>
     </message>
 </context>
 <context>
@@ -30,22 +35,22 @@
 <context>
     <name>ChineseAIAssistantDockWidget</name>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="91"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="211"/>
         <source>**Question:</source>
         <translation>**问题：</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="92"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="212"/>
         <source>**Answer:</source>
         <translation>**回答：</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="122"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="264"/>
         <source>Stop</source>
         <translation>停止</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="226"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="277"/>
         <source>Send</source>
         <translation>发送</translation>
     </message>
@@ -74,27 +79,27 @@
         <translation type="obsolete">**以下内容基于[凤凰地理社区](https://www.phoenix-gis.cn)知识库生成。**</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="183"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="138"/>
         <source>Tip</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="183"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="138"/>
         <source>Thank you for your feedback.</source>
         <translation>感谢您的反馈！</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="192"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="147"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="187"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="142"/>
         <source>Failed to submit your feedback. Please try again later.</source>
         <translation>您的反馈提交失败，请稍后再试。</translation>
     </message>
     <message>
-        <location filename="../chinese_ai_assistant_dockwidget.py" line="192"/>
+        <location filename="../chinese_ai_assistant_dockwidget.py" line="147"/>
         <source>Network error. Please check your connection and try again.</source>
         <translation>网络错误：请检查您的网络连接后，再次尝试。</translation>
     </message>
@@ -145,24 +150,74 @@
         <translation>中文AI助手设置</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.ui" line="44"/>
+        <location filename="../setting_dialog.ui" line="87"/>
         <source>Apply for high-speed channel. Please enter your email address and click &apos;Apply&apos;. We will contact you via email within 24 hours. </source>
         <translation>申请专用高速通道，请输入您的电子邮箱地址后，点击&quot;申请&quot;按钮。我们将会在24小时内发送邮件给您。请注意查收。</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.ui" line="56"/>
+        <location filename="../setting_dialog.ui" line="99"/>
         <source>E-mail：</source>
         <translation>电子邮件：</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.ui" line="83"/>
+        <location filename="../setting_dialog.ui" line="109"/>
         <source>Apply</source>
         <translation>申请</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.ui" line="90"/>
+        <location filename="../setting_dialog.ui" line="179"/>
         <source>OK</source>
         <translation>确认</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="35"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="58"/>
+        <source>Get Help</source>
+        <translation>获得帮助</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="72"/>
+        <source>High-Speed Channel</source>
+        <translation>高速通道</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="121"/>
+        <source>Multi-Turn Conversation</source>
+        <translation>多轮对话</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="130"/>
+        <source>The default maximum number of conversation turns is 2. Lengthy conversations may cause the topic to become less focused.</source>
+        <translation type="obsolete">默认最大对话轮数为2轮。过大的对话轮数会导致话题分散。</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="142"/>
+        <source>Turn Limit：</source>
+        <translation>对话轮数上限：</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="156"/>
+        <source>1</source>
+        <translation>1</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="161"/>
+        <source>2</source>
+        <translation>2</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="166"/>
+        <source>3</source>
+        <translation>3</translation>
+    </message>
+    <message>
+        <location filename="../setting_dialog.ui" line="130"/>
+        <source>The default limit is 2 conversation turns to help keep the discussion on topic.</source>
+        <translation>默认的最大对话轮数为 2。过多的对话轮数可能会导致话题偏离主题。</translation>
     </message>
 </context>
 <context>
@@ -204,42 +259,42 @@
 <context>
     <name>SettingDialog</name>
     <message>
-        <location filename="../setting_dialog.py" line="73"/>
+        <location filename="../setting_dialog.py" line="89"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.py" line="67"/>
+        <location filename="../setting_dialog.py" line="83"/>
         <source>Please enter your email address.</source>
         <translation>请输入您的电子邮箱地址。</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.py" line="73"/>
+        <location filename="../setting_dialog.py" line="89"/>
         <source>Please enter a valid email address.</source>
         <translation>请输入正确的电子邮箱地址。</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.py" line="88"/>
+        <location filename="../setting_dialog.py" line="104"/>
         <source>Tip</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.py" line="88"/>
+        <location filename="../setting_dialog.py" line="104"/>
         <source>Your request has been received. We&apos;ll get back to you by email within 24 hours. Please check your inbox later.</source>
         <translation>您的申请已送达，我们将会在24小时内回复您。请稍后查收。</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.py" line="98"/>
+        <location filename="../setting_dialog.py" line="114"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.py" line="93"/>
+        <location filename="../setting_dialog.py" line="109"/>
         <source>Failed to submit your request. Please try again later.</source>
         <translation>无法提交您的申请。请稍后再试。</translation>
     </message>
     <message>
-        <location filename="../setting_dialog.py" line="98"/>
+        <location filename="../setting_dialog.py" line="114"/>
         <source>Network error. Please check your connection and try again.</source>
         <translation>网络错误：请检查您的网络连接后，再次尝试。</translation>
     </message>

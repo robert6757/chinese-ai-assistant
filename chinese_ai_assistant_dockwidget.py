@@ -66,6 +66,7 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btnSetting.clicked.connect(self.handle_click_setting_btn)
         self.chatbot_browser.show_setting_dlg.connect(self.handle_click_setting_btn)
         self.chatbot_browser.trigger_feedback.connect(self.handle_click_feedback)
+        self.chatbot_browser.trigger_repeat.connect(self.handle_click_repeat)
         self.btnHistory.clicked.connect(self.handle_click_history_btn)
 
         # use custom function to deal with "Open Links".
@@ -75,6 +76,7 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btn_send_or_terminate_tag = 0
 
         self.chat_id = None
+        self.pre_chat_timestamp = 0
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -82,71 +84,15 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
     def handle_click_send_or_terminate_btn(self):
         if self.btn_send_or_terminate_tag == 0:
-            # In order to  make the markdown render faster, we have to clear the previous markdown content.
-            self.chatbot_browser.clear()
-
-            # add question in chatbot
-            question_str = self.plainTextEdit.toPlainText()
-            self.chatbot_browser.pre_process_markdown()
-            self.chatbot_browser.append_markdown(self.tr("**Question:") + question_str + "**\n\n")
-            self.chatbot_browser.append_markdown(self.tr("**Answer:") + "**\n\n")
-
-            gSetting = QgsSettings()
-			
-			# email
-            user_email = gSetting.value(USER_EMAIL_TAG, "")
-
-            # ui language
-            lang = gSetting.value('/locale/userLocale', 'en_US')
-
-            # build new chat id.
-            self.chat_id = uuid.uuid4().hex
-
-            # get qgis basic information in project context.
-            workspace_info = self._get_workspace_info()
-			
-            # prepare request body.
-            request_data = {
-                "prompt": question_str,
-                "history": [],
-                "db_name": "QGIS",
-                "similarity_threshold": 0.5,
-                "chunk_cnt": 5,
-                "email": user_email,
-                "version": VERSION,
-                "chat_id": self.chat_id,
-                "lang": lang,
-                "workspace": workspace_info
-            }
-
-            self.chat_worker = StreamChatWorker(request_data)
-            self.chat_worker.chunks_info_received.connect(self.on_chunks_info_received)
-            self.chat_worker.content_received.connect(self.on_content_received)
-            self.chat_worker.stream_ended.connect(self.on_stream_ended)
-            self.chat_worker.error_occurred.connect(self.on_error_occurred)
-            self.chat_worker.start()
-
-            self.btn_send_or_terminate_tag = 1
-            self.btnSendOrTerminate.setText(self.tr("Stop"))
-            self.btnHistory.setEnabled(False)
-            self.btnClear.setEnabled(False)
+            self._begin_chat()
         elif self.btn_send_or_terminate_tag == 1:
-            if self.chat_worker:
-                self.btnSendOrTerminate.setEnabled(False)
-                self.chat_worker.exit()
-                self.chat_worker.wait(3000)
-
-            self.chatbot_browser.post_process_markdown()
-            self.btnSendOrTerminate.setEnabled(True)
-            self.btn_send_or_terminate_tag = 0
-            self.btnSendOrTerminate.setText(self.tr("Send"))
-            self.btnHistory.setEnabled(True)
-            self.btnClear.setEnabled(True)
+            self._stop_chat()
 
     def handle_click_clear_btn(self):
         self.chatbot_browser.clear()
         self.plainTextEdit.clear()
         self.chat_id = None
+        self.pre_chat_timestamp = 0
 
     def handle_click_setting_btn(self):
         dlg = SettingDialog(self.iface, parent=self)
@@ -170,6 +116,7 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.chatbot_browser.clear()
         self.plainTextEdit.clear()
         self.chat_id = None
+        self.pre_chat_timestamp = history_item.get("timestamp", 0)
         self.chatbot_browser.pre_process_markdown()
         self.chatbot_browser.append_markdown(history_item["answer"], scroll_to_bottom=False)
         self.chatbot_browser.post_process_markdown(show_feedback=False)
@@ -201,6 +148,19 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
                                  self.tr("Network error. Please check your connection and try again."),
                                  QMessageBox.Ok)
 
+    def handle_click_repeat(self):
+        # remove the lasted history.
+        histories = self.history_manager.enum_question()
+        if not histories:
+            return
+
+        # remove the lasted chat.
+        self.pre_chat_timestamp = histories[0].get("pre_timestamp", 0)
+        self.history_manager.remove_history(histories[0].get("timestamp"))
+
+        # repeat chat.
+        self._begin_chat()
+
     def on_chunks_info_received(self, content):
         """receive the count of references"""
         pass
@@ -219,10 +179,15 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btnClear.setEnabled(True)
 
         # save to history
+        cur_chat_timestamp = int(time.time())
         self.history_manager.put_history(
-            int(time.time()),
+            cur_chat_timestamp,
+            self.pre_chat_timestamp,
             self.plainTextEdit.toPlainText(),
             self.chatbot_browser.get_raw_markdown_content())
+
+        # current chat will be the next previous chat.
+        self.pre_chat_timestamp = cur_chat_timestamp
 
     def on_error_occurred(self, error_msg):
         """deal with errors"""
@@ -233,6 +198,83 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
         self.btn_send_or_terminate_tag = 0
         self.btnSendOrTerminate.setText(self.tr("Send"))
         self.btnSendOrTerminate.setEnabled(True)
+        self.btnHistory.setEnabled(True)
+        self.btnClear.setEnabled(True)
+
+    def _begin_chat(self):
+        # In order to  make the markdown render faster, we have to clear the previous markdown content.
+        self.chatbot_browser.clear()
+
+        # add question in chatbot
+        question_str = self.plainTextEdit.toPlainText()
+        self.chatbot_browser.pre_process_markdown()
+        self.chatbot_browser.append_markdown(self.tr("**Question:") + question_str + "**\n\n")
+        self.chatbot_browser.append_markdown(self.tr("**Answer:") + "**\n\n")
+
+        gSetting = QgsSettings()
+
+        # email
+        user_email = gSetting.value(USER_EMAIL_TAG, "")
+
+        # ui language
+        lang = gSetting.value('/locale/userLocale', 'en_US')
+
+        # build new chat id.
+        self.chat_id = uuid.uuid4().hex
+
+        # get qgis basic information in project context.
+        workspace_info = self._get_workspace_info()
+
+        histories = []
+        if self.pre_chat_timestamp > 0:
+            # retrieve previous messages from the conversation history
+            multi_turn = int(gSetting.value(MULTI_TURN_TAG, "2"))
+            parent_chat_ts = self.pre_chat_timestamp
+            while multi_turn > 0 and parent_chat_ts > 0:
+                pre_history = self.history_manager.retrieve_history(parent_chat_ts)
+                if not pre_history:
+                    break
+
+                histories.append(pre_history)
+                parent_chat_ts = pre_history.get("pre_timestamp", 0)
+                multi_turn -= 1
+
+        # prepare request body.
+        request_data = {
+            "prompt": question_str,
+            "history": [[item['question'], item['answer']] for item in histories],
+            "db_name": "QGIS",
+            "similarity_threshold": 0.5,
+            "chunk_cnt": 5,
+            "email": user_email,
+            "version": VERSION,
+            "chat_id": self.chat_id,
+            "lang": lang,
+            "workspace": workspace_info
+        }
+
+        self.chat_worker = StreamChatWorker(request_data)
+        self.chat_worker.chunks_info_received.connect(self.on_chunks_info_received)
+        self.chat_worker.content_received.connect(self.on_content_received)
+        self.chat_worker.stream_ended.connect(self.on_stream_ended)
+        self.chat_worker.error_occurred.connect(self.on_error_occurred)
+        self.chat_worker.start()
+
+        self.btn_send_or_terminate_tag = 1
+        self.btnSendOrTerminate.setText(self.tr("Stop"))
+        self.btnHistory.setEnabled(False)
+        self.btnClear.setEnabled(False)
+
+    def _stop_chat(self):
+        if self.chat_worker:
+            self.btnSendOrTerminate.setEnabled(False)
+            self.chat_worker.exit()
+            self.chat_worker.wait(3000)
+
+        self.chatbot_browser.post_process_markdown()
+        self.btnSendOrTerminate.setEnabled(True)
+        self.btn_send_or_terminate_tag = 0
+        self.btnSendOrTerminate.setText(self.tr("Send"))
         self.btnHistory.setEnabled(True)
         self.btnClear.setEnabled(True)
 
@@ -260,11 +302,16 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
         # enumerate layers in project.
         layers_info = []
+        layer_tree_root = project.layerTreeRoot()
         layers = project.mapLayers().values()
         for layer in layers:
+            node = layer_tree_root.findLayer(layer.id())
+            visible = node.isVisible() if node else False
+
             layer_info = {}
             layer_info["name"] = f"{layer.name()}"
             layer_info["type"] = f"{layer.type().name}"
+            layer_info["visible"] = visible
 
             crs = layer.crs()
             layer_info["CRSAuthId"] = f"{crs.authid()}"
@@ -301,12 +348,13 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
                         f"{extent.yMaximum():.6f}"
                     ]
 
-                    pixel_size_x = (extent.xMaximum() - extent.xMinimum()) / provider.xSize()
-                    pixel_size_y = (extent.yMaximum() - extent.yMinimum()) / provider.ySize()
-                    layer_info["pixel_size"] = [
-                        f"{pixel_size_x:.6f}",
-                        f"{pixel_size_y:.6f}"
-                    ]
+                    if provider.xSize() > 0 and provider.ySize() > 0:
+                        pixel_size_x = (extent.xMaximum() - extent.xMinimum()) / provider.xSize()
+                        pixel_size_y = (extent.yMaximum() - extent.yMinimum()) / provider.ySize()
+                        layer_info["pixel_size"] = [
+                            f"{pixel_size_x:.6f}",
+                            f"{pixel_size_y:.6f}"
+                        ]
 
                     layer_info["origin"] = [
                         f"{extent.xMinimum():.6f}",

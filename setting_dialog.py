@@ -23,6 +23,7 @@
 
 import os
 import requests
+import webbrowser
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox
@@ -44,20 +45,35 @@ class SettingDialog(QDialog, FORM_CLASS):
         self.iface = iface
 
         self.btnOK.clicked.connect(self.handle_click_ok)
+        self.btnCancel.clicked.connect(self.handle_click_cancel)
         self.btnApply.clicked.connect(self.handle_click_apply)
+        self.btnHelp.clicked.connect(self.handle_click_help)
 
         gSetting = QgsSettings()
         email = gSetting.value(USER_EMAIL_TAG)
         if email:
             self.lineEdit.setText(email)
 
+        multi_turn = gSetting.value(MULTI_TURN_TAG, "2")
+        self.cbChatTurn.setCurrentText(multi_turn)
     def handle_click_ok(self):
         email = self.lineEdit.text()
 
         gSetting = QgsSettings()
         gSetting.setValue(USER_EMAIL_TAG, email)
 
+        # multi-turn
+        chat_turn = self.cbChatTurn.currentText()
+        gSetting.setValue(MULTI_TURN_TAG, chat_turn)
+
         super().accept()
+
+    def handle_click_cancel(self):
+        super().reject()
+
+    def handle_click_help(self):
+        url = "https://www.phoenix-gis.cn/"
+        webbrowser.open(url)
 
     def handle_click_apply(self):
         email = self.lineEdit.text().strip()

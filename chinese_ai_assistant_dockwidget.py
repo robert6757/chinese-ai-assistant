@@ -213,11 +213,11 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
 
         gSetting = QgsSettings()
 
+        # uid
+        user_id = gSetting.value(USER_ID_TAG, "")
+
         # email
         user_email = gSetting.value(USER_EMAIL_TAG, "")
-
-        # ui language
-        lang = gSetting.value('/locale/userLocale', 'en_US')
 
         # build new chat id.
         self.chat_id = uuid.uuid4().hex
@@ -248,8 +248,9 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
             "chunk_cnt": 5,
             "email": user_email,
             "version": VERSION,
+            "user_id": user_id,
             "chat_id": self.chat_id,
-            "lang": lang,
+            "lang": 'zh',
             "workspace": workspace_info
         }
 
@@ -369,7 +370,10 @@ class ChineseAIAssistantDockWidget(QDockWidget, FORM_CLASS):
                             "data_type": provider.dataType(band),
                             "color_interpretation": provider.colorInterpretation(band).name
                         }
-                        stats = provider.bandStatistics(band)
+
+                        # In order to shorten time of statistic, use the custom sample size.
+                        customSampleSize = int(max(provider.xSize(), provider.ySize()) / 256)
+                        stats = provider.bandStatistics(band, sampleSize=customSampleSize)
                         if stats:
                             band_info["minimum"] = stats.minimumValue
                             band_info["maximum"] = stats.maximumValue

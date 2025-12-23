@@ -20,9 +20,10 @@
  ***************************************************************************/
 """
 
-VERSION = "0.3"
+VERSION = "0.4"
 
 AI_SERVER_DOMAIN = "https://www.phoenix-gis.cn"
 
+USER_ID_TAG = "chinese-ai-assistant/uid"
 USER_EMAIL_TAG = "chinese-ai-assistant/email"
 MULTI_TURN_TAG = "chinese-ai-assistant/multi_turn"
